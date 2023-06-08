@@ -236,7 +236,12 @@ struct debug_timed_function
         this->Tree->ParentOfNextScope = this->Scope;
 
         this->Scope->Name = Name;
+
+        #ifdef __APPLE__
+        this->Scope->StartingCycle = __builtin_readcyclecounter();
+        #else
         this->Scope->StartingCycle = __rdtsc(); // Intentionally last
+        #endif
       }
     }
 
@@ -250,8 +255,12 @@ struct debug_timed_function
     {
       if (!DebugState->DebugDoScopeProfiling) return;
       if (!this->Scope) return;
-
+      
+      #ifdef __APPLE__
+      this->Scope->EndingCycle = __builtin_readcyclecounter();
+      #else
       this->Scope->EndingCycle = __rdtsc(); // Intentionally first;
+      #endif
 
       Assert(this->Scope->EndingCycle > this->Scope->StartingCycle);
       Assert(this->Scope->Parent != this->Scope);
